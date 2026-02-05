@@ -1,0 +1,41 @@
+{
+  "description": "Scope Guard - Detects scope creep by comparing original intent with actual changes",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/capture-prompt.js\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/track-change.js\"",
+            "async": true,
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "agent",
+            "model": "haiku",
+            "prompt": "You are Scope Guard, a scope creep detector. Your ONLY job is to check if the AI's changes IN THIS TURN match the user's original request for THIS TURN.\n\nIMPORTANT: First check the stop_hook_active field in the input below. If stop_hook_active is true, respond immediately with {\"ok\": true} - do NOT do any evaluation.\n\nHook input: $ARGUMENTS\n\nSTEPS:\n1. Extract the session_id from the hook input above\n2. Read the file .scope-guard/sessions/<session_id>/session.json to get the original user prompt for THIS turn\n3. Read the file .scope-guard/sessions/<session_id>/changes.log to get the list of files changed IN THIS TURN ONLY\n4. If either file doesn't exist or changes.log is empty, respond {\"ok\": true}\n5. CRITICAL: Only evaluate files listed in changes.log. Run git diff on ONLY those specific files: git diff -- file1 file2 file3 (use the exact paths from changes.log). Do NOT run bare git diff - it shows changes from previous turns that are irrelevant.\n6. Compare the original prompt against ONLY the changes from step 5\n\nEVALUATION RULES:\n- ONLY judge files listed in changes.log - ignore everything else in the repo\n- If ALL changes in those files directly serve the original request: {\"ok\": true}\n- Tests, types, imports, and config needed for the request are ACCEPTABLE\n- Refactoring unrelated code IS scope creep\n- Adding features not asked for IS scope creep\n- Fixing unrelated bugs IS scope creep\n- Unnecessary abstractions (factories, builders, base classes) for a simple task IS over-engineering\n- If the prompt references a plan, previous step, or continuation of earlier work, be LENIENT - the user is working through a multi-step plan\n\n\nAFTER your evaluation, log it by running this bash command (replace placeholders with actual values, escape quotes in strings):\necho '{\"ts\":\"<ISO timestamp>\",\"prompt\":\"<first 100 chars of prompt>\",\"files\":[<files as JSON array>],\"ok\":<true or false>,\"reason\":\"<reason or empty>\"}' >> .scope-guard/sessions/<session_id>/evaluations.jsonl\n\nRespond ONLY with JSON:\n{\"ok\": true} if aligned\n{\"ok\": false, \"reason\": \"What went beyond scope: [list specific files/changes that are out of scope]\"}\n\nBe concise. Only flag CLEAR violations, not borderline cases.",
+            "timeout": 60
+          }
+        ]
+      }
+    ]
+  }
+}

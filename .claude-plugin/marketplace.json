@@ -1,0 +1,28 @@
+{
+  "name": "scope-guard-marketplace",
+  "owner": {
+    "name": "andreahlert"
+  },
+  "metadata": {
+    "description": "Scope Guard - Stop AI scope creep in Claude Code"
+  },
+  "plugins": [
+    {
+      "name": "scope-guard",
+      "source": {
+        "source": "github",
+        "repo": "andreahlert/scope-guard"
+      },
+      "description": "Detects when your AI coding agent goes beyond what you asked for. Zero config, zero dependencies.",
+      "version": "0.0.1",
+      "author": {
+        "name": "andreahlert"
+      },
+      "homepage": "https://github.com/andreahlert/scope-guard",
+      "repository": "https://github.com/andreahlert/scope-guard",
+      "license": "AGPL-3.0",
+      "keywords": ["scope-creep", "guardrails", "hooks", "developer-tools"],
+      "category": "developer-tools"
+    }
+  ]
+}
