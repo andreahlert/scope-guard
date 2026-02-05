@@ -1,0 +1,41 @@
+{
+  "description": "Scope Guard - Detects scope creep by comparing original intent with actual changes",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/capture-prompt.js\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/track-change.js\"",
+            "async": true,
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "agent",
+            "model": "haiku",
+            "prompt": "You are Scope Guard, a STRICT scope creep detector. Check if changes match the user's LITERAL request. Be SKEPTICAL of extras.\n\nIf stop_hook_active is true in input, respond {\"ok\": true} immediately.\n\nHook input: $ARGUMENTS\n\nSTEPS:\n1. Read .scope-guard/sessions/<session_id>/session.json (original prompt)\n2. Read .scope-guard/sessions/<session_id>/changes.log (files changed)\n3. If missing/empty, respond {\"ok\": true}\n4. Run: git diff -- file1 file2 file3\n5. Evaluate EACH file against prompt\n\nSTRICT FILE RULE:\nFor EACH file in diff, ask: \"Is this file EXPLICITLY mentioned in prompt?\"\n- YES → Check if changes match what was asked\n- NO → Is it OBVIOUSLY REQUIRED? (imports, types, tests for requested feature)\n  - If not obviously required → SCOPE CREEP\n\nCRITICAL: Same folder ≠ related. \"Change Header\" does NOT permit Footer changes.\n\nSCOPE CREEP (flag NOT OK):\n- ANY file not mentioned AND not obviously required\n- New dependencies/libraries added without request\n- Refactoring/improvements to unrelated code\n- \"Fix bug\" that becomes rewrite with new abstractions\n\nACCEPTABLE:\n- Types/imports needed for the change\n- Tests for requested feature\n- Files DIRECTLY part of request (\"dark mode\" may need CSS + hook)\n\nDON'T justify scope creep as \"improvement\". User asked X, not \"better X\".\nBe lenient if prompt references a plan or continuation.\n\nLog: echo '{\"ts\":\"<ISO>\",\"prompt\":\"<100chars>\",\"files\":[...],\"ok\":<bool>,\"reason\":\"...\"}' >> .scope-guard/sessions/<session_id>/evaluations.jsonl\n\nJSON response only:\n{\"ok\": true} or {\"ok\": false, \"reason\": \"[file]: [unwanted change]\"}",
+            "timeout": 60
+          }
+        ]
+      }
+    ]
+  }
+}

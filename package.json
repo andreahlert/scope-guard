@@ -1,0 +1,9 @@
+{
+  "name": "scope-guard",
+  "version": "0.0.1",
+  "description": "Claude Code plugin to detect scope creep",
+  "license": "AGPL-3.0",
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

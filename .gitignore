@@ -1,0 +1,6 @@
+node_modules/
+.scope-guard/
+*.log
+.DS_Store
+docs/
+CLAUDE.md
