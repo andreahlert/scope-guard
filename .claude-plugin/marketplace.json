@@ -14,7 +14,7 @@
         "repo": "andreahlert/scope-guard"
       },
       "description": "Detects when your AI coding agent goes beyond what you asked for. Zero config, zero dependencies.",
-      "version": "0.0.1",
+      "version": "0.0.2",
       "author": {
         "name": "andreahlert"
       },

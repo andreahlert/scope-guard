@@ -1,5 +1,5 @@
 {
   "name": "scope-guard",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Detects scope creep in AI coding sessions by comparing original intent with actual changes"
 }
